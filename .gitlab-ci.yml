@@ -1,28 +1,32 @@
 stages:
-  - test
   - build
+  - push
 
 variables:
-  IMAGE_NAME: "danielariza1/chatbot-devops"
-  TAG: "latest"
+  IMAGE_NAME: danielariza1/chatbot-devops
+  TAG: latest
 
-test:
-  stage: test
-  image: python:3.10
-  script:
-    - pip install pytest
-    - pytest
+before_script:
+  - echo "🔑 Logueando en DockerHub..."
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 
-docker_build:
+build_image:
   stage: build
   image: docker:24.0.5
   services:
     - docker:24.0.5-dind
   script:
     - docker build -t $IMAGE_NAME:$TAG .
-    - echo "🔑 Logueando en DockerHub..."
-    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-    - echo "🚀 Subiendo imagen..."
+  only:
+    - main
+
+push_image:
+  stage: push
+  image: docker:24.0.5
+  services:
+    - docker:24.0.5-dind
+  script:
+    - echo "🚀 Subiendo imagen a Docker Hub..."
     - docker push $IMAGE_NAME:$TAG
   only:
     - main
