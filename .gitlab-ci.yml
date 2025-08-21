@@ -1,0 +1,31 @@
+stages:
+  - build
+  - push
+
+variables:
+  IMAGE_NAME: danielariza1/chatbot-devops   # Imagen en DockerHub
+  TAG: latest
+
+build-docker:
+  stage: build
+  image: docker:24.0.5
+  services:
+    - docker:24.0.5-dind
+  script:
+    - echo "✅ Construyendo imagen..."
+    - docker build -t $IMAGE_NAME:$TAG .
+  only:
+    - main
+
+push-docker:
+  stage: push
+  image: docker:24.0.5
+  services:
+    - docker:24.0.5-dind
+  script:
+    - echo "🔑 Logueando en DockerHub..."
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+    - echo "🚀 Subiendo imagen..."
+    - docker push $IMAGE_NAME:$TAG
+  only:
+    - main
